@@ -8,14 +8,34 @@ export default function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const response = await api.post('/login', { email, password });
-      localStorage.setItem('token', response.data.token);
-      navigate('/dashboard');
+
+      const { token, user } = response.data;
+
+      if (!token || !user) {
+        throw new Error("Données invalides.");
+      }
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // Redirection basée sur le rôle
+      switch (user.role) {
+        case 'revendeur':
+          navigate('/dash_rev');
+          break;
+        case 'admin':
+          navigate('/dashboard');
+          break;
+        default:
+          navigate('/dashboard'); // redirection par défaut
+      }
     } catch (err) {
-      setError('Identifiants invalides');
+      console.error('Erreur de connexion', err);
+      setError('Échec de la connexion. Vérifiez vos identifiants.');
     }
   };
 

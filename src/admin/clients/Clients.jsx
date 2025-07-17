@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import api from '../utils/Api';
-import { Loader } from 'lucide-react'; // facultatif si tu veux une icône spinner
+import React, { useEffect, useState } from "react";
+import api from "../../utils/Api";
+import { Loader } from "lucide-react"; // facultatif si tu veux une icône spinner
 
 export default function Clients() {
   const [clients, setClients] = useState([]);
@@ -10,10 +10,10 @@ export default function Clients() {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const res = await api.get('/clients');
+        const res = await api.get("/clients");
         setClients(res.data);
       } catch (error) {
-        console.error('Erreur lors de la récupération des clients :', error);
+        console.error("Erreur lors de la récupération des clients :", error);
       } finally {
         setLoading(false);
       }
@@ -48,26 +48,44 @@ export default function Clients() {
         <table className="min-w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left font-semibold text-gray-700">Nom</th>
-              <th className="px-6 py-3 text-left font-semibold text-gray-700">Email</th>
-              <th className="px-6 py-3 text-left font-semibold text-gray-700">Téléphone</th>
-              <th className="px-6 py-3 text-left font-semibold text-gray-700">Pays</th>
-              <th className="px-6 py-3 text-left font-semibold text-gray-700">Montant payé</th>
-              <th className="px-6 py-3 text-left font-semibold text-gray-700">Date paiement</th>
-              <th className="px-6 py-3 text-left font-semibold text-gray-700">Statut</th>
+              <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                Nom
+              </th>
+              <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                Email
+              </th>
+              <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                Téléphone
+              </th>
+              <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                Pays
+              </th>
+              <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                Montant payé
+              </th>
+              <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                Date paiement
+              </th>
+              <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                Statut
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {clients.map((client) => (
               <tr key={client.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">{client.nom || client.name}</td>
-                <td className="px-6 py-4">{client.email || '-'}</td>
-                <td className="px-6 py-4">{client.phone || '-'}</td>
-                <td className="px-6 py-4">{client.pays || '-'}</td>
-                <td className="px-6 py-4 text-indigo-600 font-semibold">
-                  {client.montant_paye ? parseFloat(client.montant_paye).toLocaleString() + ' Ar' : '-'}
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {client.nom || client.name}
                 </td>
-                <td className="px-6 py-4">{client.date_paiement || '-'}</td>
+                <td className="px-6 py-4">{client.email || "-"}</td>
+                <td className="px-6 py-4">{client.phone || "-"}</td>
+                <td className="px-6 py-4">{client.pays || "-"}</td>
+                <td className="px-6 py-4 text-indigo-600 font-semibold">
+                  {client.montant_paye
+                    ? parseFloat(client.montant_paye).toLocaleString() + " Ar"
+                    : "-"}
+                </td>
+                <td className="px-6 py-4">{client.date_paiement || "-"}</td>
                 <td className="px-6 py-4">
                   {client.revendeur_id ? (
                     <span className="inline-flex items-center px-3 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">

@@ -1,7 +1,7 @@
 // src/revendeurs/Revendeurs.jsx
 import React, { useEffect, useState, useCallback } from 'react';
 import RevendeurForm from './RevendeurForm';
-import api from '../utils/Api';
+import api from '../../utils/Api';
 
 export default function Revendeurs() {
   const [revendeurs, setRevendeurs] = useState([]);

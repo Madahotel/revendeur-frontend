@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api from '../utils/Api';
+import api from '../../utils/Api';
 
 export default function RevendeurForm({ onCreated }) {
   const [form, setForm] = useState({

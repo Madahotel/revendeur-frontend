@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './auth/Login';
 import Dashboard from './admin/Dashboard';
-import Clients from './clients/Clients';
+import Clients from './admin/clients/Clients';
 import Layout from './layouts/Layout';
-import Transactions from './transactions/Transactions';
-import Revendeurs from './revendeurs/Revendeurs';
+import Transactions from './admin/transactions/Transactions';
+import Revendeurs from './admin/revendeurs/Revendeurs';
+import RevendeurDashboard from './revendeur/RevendeurDashboard';
+import ClientsAffilies from './revendeur/clients/ClientsAffilies';
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -26,9 +28,11 @@ export default function App() {
           }
         >
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="clients" element={<Clients />} />
-          <Route path="transactions" element={<Transactions />} />
+          <Route path="dashboard/clients" element={<Clients />} />
+          <Route path="dashboard/transactions" element={<Transactions />} />
           <Route path="revendeurs" element={<Revendeurs />} />
+          <Route path="dash_rev" element={<RevendeurDashboard />} />
+          <Route path="dash_rev/clients" element={<ClientsAffilies />} />
           {/* autres routes protégées ici */}
         </Route>
 

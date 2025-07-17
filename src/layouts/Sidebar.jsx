@@ -1,6 +1,13 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FiHome, FiUsers, FiLogOut, FiBell, FiTrendingUp, FiUserCheck } from 'react-icons/fi';
+import {
+  FiHome,
+  FiUsers,
+  FiLogOut,
+  FiBell,
+  FiTrendingUp,
+  FiUserCheck,
+} from 'react-icons/fi';
 
 export default function Sidebar({ user }) {
   const navigate = useNavigate();
@@ -12,8 +19,14 @@ export default function Sidebar({ user }) {
 
   const linkClass = ({ isActive }) =>
     `flex items-center gap-3 px-4 py-2 rounded-lg transition duration-150 ${
-      isActive ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+      isActive
+        ? 'bg-gray-700 text-white'
+        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
     }`;
+
+  // Définition des routes spécifiques selon le rôle
+  const isRevendeur = user?.role === 'revendeur';
+  const baseRoute = isRevendeur ? '/dash_rev' : '/dashboard';
 
   return (
     <aside className="h-screen w-64 bg-gray-800 flex flex-col shadow-lg fixed">
@@ -24,15 +37,15 @@ export default function Sidebar({ user }) {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2 text-sm font-medium">
-        <NavLink to="/dashboard" className={linkClass}>
+        <NavLink to={baseRoute} className={linkClass}>
           <FiHome /> Accueil
         </NavLink>
 
-        <NavLink to="/clients" className={linkClass}>
+        <NavLink to={`${baseRoute}/clients`} className={linkClass}>
           <FiUsers /> Clients
         </NavLink>
 
-        <NavLink to="/transactions" className={linkClass}>
+        <NavLink to={`${baseRoute}/transactions`} className={linkClass}>
           <FiTrendingUp /> Transactions
         </NavLink>
 
@@ -42,7 +55,7 @@ export default function Sidebar({ user }) {
           </NavLink>
         )}
 
-        <NavLink to="/notifications" className={linkClass}>
+        <NavLink to={`${baseRoute}/notifications`} className={linkClass}>
           <FiBell /> Notifications
         </NavLink>
       </nav>
