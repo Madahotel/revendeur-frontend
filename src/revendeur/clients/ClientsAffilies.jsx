@@ -12,8 +12,7 @@ export default function ClientsAffilies() {
     if (user && user.role === "revendeur") {
       const fetchClients = async () => {
         try {
-          // ⚠️ Nouvelle route : /clients/revendeur/{revendeur_id}
-          const response = await api.get(`/clients`);
+          const response = await api.get(`/mes-clients`);
           setClients(response.data);
         } catch (err) {
           setErreur("Erreur lors du chargement des clients affiliés.");
@@ -35,17 +34,38 @@ export default function ClientsAffilies() {
 
   return (
     <div className="p-4 bg-white shadow rounded-xl">
-      <h2 className="text-xl font-semibold mb-4">Clients affiliés</h2>   {" "}
+      <h2 className="text-xl font-semibold mb-4">Clients affiliés</h2>
       {clients.length === 0 ? (
         <p>Aucun client affilié trouvé.</p>
       ) : (
-        <ul className="space-y-2">
-          {clients.map((client) => (
-            <li key={client.id} className="p-3 border rounded-md bg-gray-50">
-              <strong>{client.nom}</strong> – {client.email}
-            </li>
-          ))}
-        </ul>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-gray-300">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-4 py-2">Nom</th>
+                <th className="border px-4 py-2">Email</th>
+                <th className="border px-4 py-2">Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              {clients.map((client) => (
+                <tr key={client.id} className="text-center">
+                  <td className="border px-4 py-2">{client.name}</td>
+                  <td className="border px-4 py-2">{client.email}</td>
+                  <td
+                    className={`border px-4 py-2 ${
+                      client.statut === "Payé"
+                        ? "text-green-600 font-semibold"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {client.statut || "Inconnu"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

@@ -197,19 +197,19 @@ export default function Transactions() {
                   </td>
 
                   {/* Actions */}
-{/* Actions */}
-<td className="px-4 py-2 whitespace-nowrap">
-  {tx.statut === "en_attente" ? (
-    <button
-      onClick={() => setSelectedTransaction(tx)}
-      className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors"
-    >
-      Valider
-    </button>
-  ) : (
-    <span className="text-gray-400">Valide</span>
-  )}
-</td>
+                  {/* Actions */}
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    {tx.statut === "en_attente" ? (
+                      <button
+                        onClick={() => setSelectedTransaction(tx)}
+                        className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors"
+                      >
+                        Valider
+                      </button>
+                    ) : (
+                      <span className="text-gray-400">Valide</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

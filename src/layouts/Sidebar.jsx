@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import NotificationBadge from '../admin/notifications/NotificationBadge'; // Assuming you have a NotificationBadge component
 import {
   FiHome,
   FiUsers,
@@ -56,7 +57,8 @@ export default function Sidebar({ user }) {
         )}
 
         <NavLink to={`${baseRoute}/notifications`} className={linkClass}>
-          <FiBell /> Notifications
+         <NotificationBadge />
+       Notifications
         </NavLink>
       </nav>
 

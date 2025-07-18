@@ -1,12 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import api from '../utils/Api';
-import { FaDownload } from 'react-icons/fa';
+import React, { useEffect, useState } from "react";
+import api from "../utils/Api";
+import { FaDownload } from "react-icons/fa";
 
 const RevendeurDashboard = () => {
+  const [revendeur, setRevendeur] = useState(null);
+
+const affiliationLink = revendeur ? `https://marketplace.forma-fusion.com/register?ref=${revendeur.code_affiliation}` : '';
+
+
   const [solde, setSolde] = useState(0);
   const [transactions, setTransactions] = useState([]);
-  const [montant, setMontant] = useState('');
-  const [moyenPaiement, setMoyenPaiement] = useState('mvola');
+  const [montant, setMontant] = useState("");
+  const [moyenPaiement, setMoyenPaiement] = useState("mvola");
 
   useEffect(() => {
     fetchSolde();
@@ -15,46 +20,107 @@ const RevendeurDashboard = () => {
 
   const fetchSolde = async () => {
     try {
-      const response = await api.get('/solde');
+      const response = await api.get("/solde");
       setSolde(response.data.solde);
     } catch (error) {
-      console.error('Erreur solde', error);
+      console.error("Erreur solde", error);
     }
   };
 
   const fetchTransactions = async () => {
     try {
-      const response = await api.get('/transactions');
+      const response = await api.get("/transactions");
       setTransactions(response.data);
     } catch (error) {
-      console.error('Erreur transactions', error);
+      console.error("Erreur transactions", error);
+    }
+  };
+
+  // ...
+
+
+  useEffect(() => {
+    fetchSolde();
+    fetchTransactions();
+    fetchRevendeurInfo(); // ➕
+  }, []);
+
+  const fetchRevendeurInfo = async () => {
+    try {
+      const response = await api.get("/me"); 
+      setRevendeur(response.data);
+    } catch (error) {
+      console.error("Erreur info revendeur:", error);
     }
   };
 
   const handleRetrait = async () => {
-    if (!montant) return alert("Veuillez entrer un montant");
+    if (!montant) {
+      return alert("Veuillez entrer un montant.");
+    }
+
+    if (parseFloat(montant) <= 0) {
+      return alert("Le montant doit être supérieur à zéro.");
+    }
 
     try {
-      await api.post('/transactions', {
+      await api.post("/transactions", {
         montant,
         moyen_paiement: moyenPaiement,
       });
 
-      alert("Demande envoyée");
+      alert("Demande envoyée avec succès.");
       fetchTransactions();
       fetchSolde();
-      setMontant('');
+      setMontant("");
     } catch (error) {
-      alert("Erreur lors de la demande");
+      console.error("Erreur lors du retrait :", error);
+
+      // Affichage message précis s'il y en a un depuis le serveur
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        alert(`Erreur : ${error.response.data.message}`);
+      } else {
+        alert("Une erreur s'est produite. Veuillez réessayer.");
+      }
     }
   };
 
   const exportPDF = (id) => {
-    window.open(`/export-pdf/transaction/${id}`, '_blank');
+    window.open(`/export-pdf/transaction/${id}`, "_blank");
   };
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
+      {revendeur && (
+        <div className="bg-white rounded-xl shadow-md p-4 mb-6">
+          <h3 className="text-xl font-semibold mb-2">
+            Votre lien d'affiliation :
+          </h3>
+          <div className="flex items-center justify-between">
+<input
+  type="text"
+  readOnly
+  value={affiliationLink}
+  className="p-2 border rounded-md w-full mr-4"
+/>
+<button
+  onClick={() => {
+    navigator.clipboard.writeText(affiliationLink);
+    alert("Lien copié !");
+  }}
+  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+>
+  Copier
+</button>
+
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-md p-4 mb-6 flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Solde actuel : </h2>
         <span className="text-green-600 text-3xl font-bold">{solde} Ar</span>
@@ -104,11 +170,17 @@ const RevendeurDashboard = () => {
           <tbody>
             {transactions.map((t) => (
               <tr key={t.id} className="border-b hover:bg-gray-50">
-                <td className="p-2">{new Date(t.created_at).toLocaleDateString()}</td>
+                <td className="p-2">
+                  {new Date(t.created_at).toLocaleDateString()}
+                </td>
                 <td className="p-2">{t.montant} Ar</td>
                 <td className="p-2 capitalize">{t.moyen_paiement}</td>
                 <td className="p-2">
-                  <span className={`px-2 py-1 rounded-full text-sm font-semibold ${getStatutColor(t.statut)}`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-sm font-semibold ${getStatutColor(
+                      t.statut
+                    )}`}
+                  >
                     {t.statut}
                   </span>
                 </td>
@@ -131,12 +203,12 @@ const RevendeurDashboard = () => {
 
 const getStatutColor = (statut) => {
   switch (statut) {
-    case 'valide':
-      return 'bg-green-100 text-green-700';
-    case 'refuse':
-      return 'bg-red-100 text-red-700';
+    case "valide":
+      return "bg-green-100 text-green-700";
+    case "refuse":
+      return "bg-red-100 text-red-700";
     default:
-      return 'bg-yellow-100 text-yellow-700';
+      return "bg-yellow-100 text-yellow-700";
   }
 };
 
