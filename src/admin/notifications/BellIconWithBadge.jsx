@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../utils/Api';
 
 export default function BellIconWithBadge() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     // Maka isa notif tsy novakiana
-    axios.get('/api/notifications/unread-count')
+    api.get('/notifications/unread-count')
       .then(res => setUnreadCount(res.data.count))
       .catch(err => console.error(err));
   }, []);

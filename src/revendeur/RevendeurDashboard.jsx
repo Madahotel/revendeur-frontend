@@ -1,215 +1,216 @@
-import React, { useEffect, useState } from "react";
-import api from "../utils/Api";
-import { FaDownload } from "react-icons/fa";
+import React, { useEffect, useState, useCallback } from "react";
+import api from '../utils/Api';
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import WithdrawalForm from './WithdrawalForm';
+import TransactionHistory from './TransactionHistory';
+import { ClipboardDocumentIcon, ArrowDownTrayIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
-const RevendeurDashboard = () => {
+export default function RevendeurDashboard() {
   const [revendeur, setRevendeur] = useState(null);
-
-const affiliationLink = revendeur ? `https://marketplace.forma-fusion.com/register?ref=${revendeur.code_affiliation}` : '';
-
-
   const [solde, setSolde] = useState(0);
   const [transactions, setTransactions] = useState([]);
-  const [montant, setMontant] = useState("");
-  const [moyenPaiement, setMoyenPaiement] = useState("mvola");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchSolde();
-    fetchTransactions();
+  const affiliationLink = revendeur ? `${window.location.origin}/register?ref=${revendeur.code_affiliation}` : '';
+
+  const fetchRevendeurInfo = useCallback(async () => {
+    try {
+      const response = await api.get("/me");
+      setRevendeur(response.data);
+    } catch (err) {
+      console.error("Erreur lors de la récupération des infos revendeur:", err);
+      setError("Impossible de charger les informations du revendeur.");
+      toast.error("Erreur lors du chargement de votre profil.");
+    }
   }, []);
 
-  const fetchSolde = async () => {
+  const fetchSolde = useCallback(async () => {
     try {
       const response = await api.get("/solde");
       setSolde(response.data.solde);
-    } catch (error) {
-      console.error("Erreur solde", error);
+    } catch (err) {
+      console.error("Erreur lors de la récupération du solde:", err);
+      setError("Impossible de charger votre solde.");
+      toast.error("Erreur lors du chargement de votre solde.");
     }
-  };
+  }, []);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       const response = await api.get("/transactions");
       setTransactions(response.data);
-    } catch (error) {
-      console.error("Erreur transactions", error);
+    } catch (err) {
+      console.error("Erreur lors de la récupération des transactions:", err);
+      setError("Impossible de charger l'historique des transactions.");
+      toast.error("Erreur lors du chargement des transactions.");
     }
-  };
-
-  // ...
-
-
-  useEffect(() => {
-    fetchSolde();
-    fetchTransactions();
-    fetchRevendeurInfo(); // ➕
   }, []);
 
-  const fetchRevendeurInfo = async () => {
-    try {
-      const response = await api.get("/me"); 
-      setRevendeur(response.data);
-    } catch (error) {
-      console.error("Erreur info revendeur:", error);
-    }
-  };
+  const refreshDashboardData = useCallback(() => {
+    fetchSolde();
+    fetchTransactions();
+  }, [fetchSolde, fetchTransactions]);
 
-  const handleRetrait = async () => {
-    if (!montant) {
-      return alert("Veuillez entrer un montant.");
-    }
+  useEffect(() => {
+    const loadAllData = async () => {
+      setLoading(true);
+      setError(null);
+      await Promise.all([fetchRevendeurInfo(), fetchSolde(), fetchTransactions()]);
+      setLoading(false);
+    };
+    loadAllData();
+  }, [fetchRevendeurInfo, fetchSolde, fetchTransactions]);
 
-    if (parseFloat(montant) <= 0) {
-      return alert("Le montant doit être supérieur à zéro.");
-    }
-
-    try {
-      await api.post("/transactions", {
-        montant,
-        moyen_paiement: moyenPaiement,
-      });
-
-      alert("Demande envoyée avec succès.");
-      fetchTransactions();
-      fetchSolde();
-      setMontant("");
-    } catch (error) {
-      console.error("Erreur lors du retrait :", error);
-
-      // Affichage message précis s'il y en a un depuis le serveur
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        alert(`Erreur : ${error.response.data.message}`);
-      } else {
-        alert("Une erreur s'est produite. Veuillez réessayer.");
-      }
-    }
-  };
-
-  const exportPDF = (id) => {
-    window.open(`/export-pdf/transaction/${id}`, "_blank");
-  };
-
-  return (
-    <div className="p-6 max-w-5xl mx-auto">
-      {revendeur && (
-        <div className="bg-white rounded-xl shadow-md p-4 mb-6">
-          <h3 className="text-xl font-semibold mb-2">
-            Votre lien d'affiliation :
-          </h3>
-          <div className="flex items-center justify-between">
-<input
-  type="text"
-  readOnly
-  value={affiliationLink}
-  className="p-2 border rounded-md w-full mr-4"
-/>
-<button
-  onClick={() => {
-    navigator.clipboard.writeText(affiliationLink);
-    alert("Lien copié !");
-  }}
-  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
->
-  Copier
-</button>
-
-          </div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center p-8 bg-white rounded-xl shadow-md flex flex-col items-center">
+          <svg className="animate-spin h-10 w-10 text-indigo-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p className="text-gray-600 text-lg font-medium">Chargement du tableau de bord...</p>
         </div>
-      )}
-
-      <div className="bg-white rounded-xl shadow-md p-4 mb-6 flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">Solde actuel : </h2>
-        <span className="text-green-600 text-3xl font-bold">{solde} Ar</span>
       </div>
+    );
+  }
 
-      <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-        <h3 className="text-xl font-semibold mb-4">Demande de retrait</h3>
-        <div className="flex flex-col md:flex-row gap-4">
-          <input
-            type="number"
-            placeholder="Montant"
-            value={montant}
-            onChange={(e) => setMontant(e.target.value)}
-            className="p-2 border rounded-md w-full md:w-1/3"
-          />
-          <select
-            value={moyenPaiement}
-            onChange={(e) => setMoyenPaiement(e.target.value)}
-            className="p-2 border rounded-md w-full md:w-1/3"
-          >
-            <option value="mvola">MVola</option>
-            <option value="orange">Orange Money</option>
-            <option value="banque">Banque</option>
-            <option value="autre">Autre</option>
-          </select>
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center p-8 bg-white rounded-xl shadow-md border border-red-200 max-w-md">
+          <p className="text-red-600 text-lg font-semibold mb-4">{error}</p>
           <button
-            onClick={handleRetrait}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md"
+            onClick={refreshDashboardData}
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg transition-colors shadow-sm"
           >
-            Envoyer
+            <ArrowPathIcon className="h-5 w-5" />
+            Réessayer
           </button>
         </div>
       </div>
+    );
+  }
 
-      <div className="bg-white rounded-xl shadow-md p-6">
-        <h3 className="text-xl font-semibold mb-4">Mes transactions</h3>
-        <table className="w-full table-auto">
-          <thead>
-            <tr className="bg-gray-100 text-left">
-              <th className="p-2">Date</th>
-              <th className="p-2">Montant</th>
-              <th className="p-2">Moyen</th>
-              <th className="p-2">Statut</th>
-              <th className="p-2">PDF</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map((t) => (
-              <tr key={t.id} className="border-b hover:bg-gray-50">
-                <td className="p-2">
-                  {new Date(t.created_at).toLocaleDateString()}
-                </td>
-                <td className="p-2">{t.montant} Ar</td>
-                <td className="p-2 capitalize">{t.moyen_paiement}</td>
-                <td className="p-2">
-                  <span
-                    className={`px-2 py-1 rounded-full text-sm font-semibold ${getStatutColor(
-                      t.statut
-                    )}`}
-                  >
-                    {t.statut}
-                  </span>
-                </td>
-                <td className="p-2">
-                  <button
-                    onClick={() => exportPDF(t.id)}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    <FaDownload />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+  return (
+    <div className="p-4 md:p-6 max-w-6xl mx-auto font-sans bg-gray-50 min-h-screen">
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000} 
+        hideProgressBar={false} 
+        newestOnTop={false} 
+        closeOnClick 
+        rtl={false} 
+        pauseOnFocusLoss 
+        draggable 
+        pauseOnHover 
+        toastClassName="shadow-lg"
+      />
+
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Tableau de bord Revendeur</h1>
+        <p className="text-gray-600 mt-1">Gérez votre activité et vos commissions</p>
+      </div>
+
+      {/* Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Solde Card */}
+          <div className="bg-gradient-to-r from-indigo-600 to-blue-700 rounded-xl shadow-lg p-6 text-white">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-lg font-medium">Solde disponible</h2>
+                <p className="text-sm opacity-90 mt-1">Montant total pouvant être retiré</p>
+              </div>
+              <button 
+                onClick={refreshDashboardData}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                aria-label="Rafraîchir"
+              >
+                <ArrowPathIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="mt-4 flex items-end justify-between">
+              <span className="text-3xl md:text-4xl font-bold">
+                {solde.toLocaleString('fr-FR')} Ar
+              </span>
+              <button className="flex items-center gap-2 bg-white text-indigo-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors shadow-sm">
+                <ArrowDownTrayIcon className="h-4 w-4" />
+                Exporter
+              </button>
+            </div>
+          </div>
+
+          {/* Withdrawal Form */}
+          <WithdrawalForm solde={solde} onWithdrawalSuccess={refreshDashboardData} />
+
+          {/* Transaction History */}
+          <TransactionHistory 
+            transactions={transactions} 
+            apiBaseUrl={api.defaults.baseURL} 
+            onRefreshTransactions={fetchTransactions}
+          />
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Affiliation Link Card */}
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+              <ClipboardDocumentIcon className="h-5 w-5 text-indigo-600" />
+              Lien d'affiliation
+            </h3>
+            <div className="flex flex-col gap-3">
+              <input
+                type="text"
+                readOnly
+                value={affiliationLink}
+                className="p-3 border border-gray-200 rounded-lg w-full bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(affiliationLink);
+                  toast.success("Lien copié dans le presse-papier !");
+                }}
+                className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm text-sm font-medium"
+              >
+                <ClipboardDocumentIcon className="h-4 w-4" />
+                Copier le lien
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-3">
+              Partagez ce lien pour inviter de nouveaux clients et gagner des commissions.
+            </p>
+          </div>
+
+          {/* Stats Card */}
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Statistiques</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-500">Clients affiliés</p>
+                <p className="text-xl font-bold text-indigo-600">24</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Commissions ce mois</p>
+                <p className="text-xl font-bold text-indigo-600">1,240,500 Ar</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Retraits effectués</p>
+                <p className="text-xl font-bold text-indigo-600">3</p>
+              </div>
+            </div>
+            <button className="mt-4 flex items-center justify-center gap-2 w-full border border-indigo-600 text-indigo-600 px-4 py-2.5 rounded-lg hover:bg-indigo-50 transition-colors text-sm font-medium">
+              <ArrowDownTrayIcon className="h-4 w-4" />
+              Télécharger le rapport
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
-};
-
-const getStatutColor = (statut) => {
-  switch (statut) {
-    case "valide":
-      return "bg-green-100 text-green-700";
-    case "refuse":
-      return "bg-red-100 text-red-700";
-    default:
-      return "bg-yellow-100 text-yellow-700";
-  }
-};
-
-export default RevendeurDashboard;
+}

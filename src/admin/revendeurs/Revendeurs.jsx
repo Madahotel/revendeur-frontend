@@ -7,11 +7,11 @@ export default function Revendeurs() {
   const [revendeurs, setRevendeurs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ⛏️ Déplace cette fonction ici
   const fetchRevendeurs = useCallback(async () => {
     try {
       const res = await api.get('/revendeurs');
-      setRevendeurs(res.data);
+      console.log('Réponse API:', res.data);
+      setRevendeurs(res.data.revendeurs); // ✅ Corrigé ici
     } catch (error) {
       console.error('Erreur chargement des revendeurs:', error);
     } finally {
@@ -19,7 +19,6 @@ export default function Revendeurs() {
     }
   }, []);
 
-  // 👇 Appel initial
   useEffect(() => {
     fetchRevendeurs();
   }, [fetchRevendeurs]);

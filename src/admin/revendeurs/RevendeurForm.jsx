@@ -7,16 +7,19 @@ export default function RevendeurForm({ onCreated }) {
     email: '',
     pays: '',
     password: '',
-    password_confirmation: '',  // ajouté
+    password_confirmation: '',
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [errors, setErrors] = useState({}); // pour afficher les erreurs
+  const [errors, setErrors] = useState({});
 
+  // Mise à jour du formulaire
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
+  // Soumission du formulaire
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -26,6 +29,8 @@ export default function RevendeurForm({ onCreated }) {
     try {
       const res = await api.post('/register-revendeur', form);
       setMessage(`✅ Revendeur créé avec succès : ${res.data.code_affiliation}`);
+
+      // Reset du formulaire
       setForm({
         name: '',
         email: '',
@@ -36,8 +41,10 @@ export default function RevendeurForm({ onCreated }) {
 
       if (onCreated) onCreated();
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.errors) {
+      if (err.response?.data?.errors) {
         setErrors(err.response.data.errors);
+      } else if (err.response?.data?.message) {
+        setMessage(`❌ ${err.response.data.message}`);
       } else {
         setMessage("❌ Erreur lors de la création du revendeur.");
       }
@@ -50,6 +57,7 @@ export default function RevendeurForm({ onCreated }) {
     <div className="bg-white p-6 rounded-xl shadow mb-6">
       <h2 className="text-xl font-semibold mb-4">Créer un nouveau revendeur</h2>
       <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
+        {/* Nom */}
         <div>
           <input
             type="text"
@@ -63,6 +71,7 @@ export default function RevendeurForm({ onCreated }) {
           {errors.name && <p className="text-red-600 text-sm">{errors.name[0]}</p>}
         </div>
 
+        {/* Email */}
         <div>
           <input
             type="email"
@@ -76,6 +85,7 @@ export default function RevendeurForm({ onCreated }) {
           {errors.email && <p className="text-red-600 text-sm">{errors.email[0]}</p>}
         </div>
 
+        {/* Pays */}
         <div>
           <input
             type="text"
@@ -84,11 +94,11 @@ export default function RevendeurForm({ onCreated }) {
             onChange={handleChange}
             placeholder="Pays"
             className="border p-2 rounded w-full"
-            required
           />
           {errors.pays && <p className="text-red-600 text-sm">{errors.pays[0]}</p>}
         </div>
 
+        {/* Mot de passe */}
         <div>
           <input
             type="password"
@@ -102,6 +112,7 @@ export default function RevendeurForm({ onCreated }) {
           {errors.password && <p className="text-red-600 text-sm">{errors.password[0]}</p>}
         </div>
 
+        {/* Confirmation mot de passe */}
         <div>
           <input
             type="password"
@@ -117,6 +128,7 @@ export default function RevendeurForm({ onCreated }) {
           )}
         </div>
 
+        {/* Bouton */}
         <div className="col-span-2">
           <button
             type="submit"
@@ -128,7 +140,12 @@ export default function RevendeurForm({ onCreated }) {
         </div>
       </form>
 
-      {message && <p className={`mt-4 text-sm ${message.startsWith('✅') ? 'text-green-600' : 'text-red-600'}`}>{message}</p>}
+      {/* Message retour */}
+      {message && (
+        <p className={`mt-4 text-sm ${message.startsWith('✅') ? 'text-green-600' : 'text-red-600'}`}>
+          {message}
+        </p>
+      )}
     </div>
   );
 }
